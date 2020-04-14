@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/CJey/gbase?status.svg)](https://godoc.org/github.com/CJey/gbase)
+[![GoDoc](https://godoc.org/github.com/cjey/gbase?status.svg)](https://pkg.go.dev/github.com/cjey/gbase)
 
 ## gbase
 
