@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/CJey/gbase?status.svg)](https://godoc.org/github.com/CJey/gbase)
+
 ## gbase
 
 目标在于实现非常基础的常用库，提供简单易用的API
