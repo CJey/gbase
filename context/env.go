@@ -28,6 +28,7 @@ type Env interface {
 	GetBool(key interface{}) bool
 	GetFloat(key interface{}) float64
 	GetString(key interface{}) string
+	GetIP(key interface{}) net.IP
 	GetAddr(key interface{}) net.Addr
 	GetTime(key interface{}) time.Time
 	GetDuration(key interface{}) time.Duration
@@ -53,9 +54,6 @@ func (e *env) fork() *env {
 }
 
 func (e *env) Fork() Env {
-	if e == nil {
-		return nil
-	}
 	return e.fork()
 }
 
@@ -158,6 +156,13 @@ func (e *env) GetString(key interface{}) string {
 		return value.(string)
 	}
 	return ""
+}
+
+func (e *env) GetIP(key interface{}) net.IP {
+	if value, ok := e.Get(key); ok {
+		return value.(net.IP)
+	}
+	return nil
 }
 
 func (e *env) GetAddr(key interface{}) net.Addr {

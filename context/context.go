@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // type alias
@@ -31,6 +33,12 @@ type Context interface {
 	// it should chain all locations start from root
 	At(location string) Context
 	ForkAt(location string) Context
+	// Reborn will use gcontext.Background() instead of internal context,
+	// it used for escaping internal context's cancel request
+	Reborn() Context
+	// RebornWith will use specified context instead of internal context,
+	// it used for escaping internal context's cancel request
+	RebornWith(gcontext.Context) Context
 	// Name return my logger's name
 	Name() string
 	// Location return my logger's location
@@ -76,18 +84,28 @@ type context struct {
 var _ Context = &context{}
 
 // Simple return a very simple context, without name, without location,
-// and auto use zap.S() as internal logger
+// and use zap.S() as internal logger
 func Simple() Context {
 	return New(
 		gcontext.Background(),
 		NewEnv(),
-		NewLogger("", "", nil, nil, nil),
+		NewLogger("", "", zap.S(), nil, nil),
 	)
 }
 
-// New return a context, it needs 3 key componets,
-// an official Context, an Env and a Logger
+// an official Context, an Env and a Logger.
+// It will use default value if not given by
 func New(gctx gcontext.Context, env Env, logger Logger) Context {
+	if gctx == nil {
+		gctx = gcontext.Background()
+	}
+	if env == nil {
+		env = NewEnv()
+	}
+	if logger == nil {
+		logger = NewLogger("", "", nil, nil, nil)
+	}
+
 	var tracker uint64
 	return &context{
 		gctx:    gctx,
@@ -133,13 +151,23 @@ func (ctx *context) At(location string) Context {
 }
 
 func (ctx *context) ForkAt(location string) Context {
-	if ctx == nil {
-		return nil
-	}
 	var seq = atomic.AddUint64(ctx.tracker, 1)
 	var newctx = ctx.fork(strconv.FormatUint(seq, 10), location)
 	var tracker uint64
 	newctx.tracker = &tracker
+	return newctx
+}
+
+func (ctx *context) Reborn() Context {
+	return ctx.RebornWith(gcontext.Background())
+}
+
+func (ctx *context) RebornWith(gctx gcontext.Context) Context {
+	if gctx == nil {
+		gctx = gcontext.Background()
+	}
+	var newctx = ctx.fork("", "")
+	newctx.gctx = gctx
 	return newctx
 }
 
