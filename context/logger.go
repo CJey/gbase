@@ -65,6 +65,7 @@ type logger struct {
 
 	name     string
 	location string
+	with     []interface{}
 }
 
 var _ Logger = &logger{}
@@ -130,12 +131,18 @@ func (l *logger) fork(name, location string) *logger {
 		field, l2.location = l2.locationJoiner(l.location, location)
 	}
 
+	l2.with = make([]interface{}, len(l.with))
+	copy(l2.with, l.with)
+
 	if l2.zap != nil {
 		if l2.name != "" {
 			l2.zap = l2.zap.Named(l2.name)
 		}
 		if l2.location != "" && field != "" {
 			l2.zap = l2.zap.With(field, l2.location)
+		}
+		if len(l2.with) > 0 {
+			l2.zap = l2.zap.With(l2.with...)
 		}
 	}
 
@@ -240,7 +247,10 @@ func (l *logger) Fatalf(template string, args ...interface{}) {
 
 func (l *logger) With(kvs ...interface{}) Logger {
 	var l2 = l.fork("", "")
-	l2.zap = l2.zap.With(kvs...)
+	if len(kvs) > 0 {
+		l2.with = append(l2.with, kvs...)
+		l2.zap = l2.zap.With(kvs...)
+	}
 	return l2
 }
 
