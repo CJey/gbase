@@ -2,6 +2,8 @@ package gbase
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"time"
 
 	"go.uber.org/zap"
@@ -35,6 +37,14 @@ func NewZapLogger(level, outpath, encoding string, showCaller bool) (*zap.Logger
 		zlevel = zap.FatalLevel
 	default:
 		return nil, errors.New("Unexpected log level " + level)
+	}
+
+	if dir := filepath.Dir(outpath); dir != "." && dir != ".." && dir != "/" {
+		if _, e := os.Stat(dir); errors.Is(e, os.ErrNotExist) {
+			if e := os.MkdirAll(dir, 0755); e != nil {
+				return nil, e
+			}
+		}
 	}
 
 	var zcfg = zap.Config{
