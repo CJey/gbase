@@ -4,6 +4,7 @@
 # ROOT: 总是正确指向build脚本所在目录
 _ROOT="$(pwd)" && cd "$(dirname "$0")" && ROOT="$(pwd)"
 PJROOT="$ROOT"
+DARWIN="$([ "$(uname -s)" = "Darwin" ] && echo true || echo false)"
 
 # 检查golang环境
 __check_golang() {
@@ -84,14 +85,22 @@ echo
 echo "GitTrace    $GIT_NUMBER.$(echo $GIT_HASH | cut -c1-7)"
 echo "GitBranch   $GIT_BRANCH"
 echo "GitRepo     $GIT_REPO"
+if $DARWIN; then
+echo "GitHash     $GIT_HASH @ $(date -r $GIT_TIME '+%Y-%m-%d %H:%M:%S %Z')"
+else
 echo "GitHash     $GIT_HASH @ $(date --date=@$GIT_TIME '+%Y-%m-%d %H:%M:%S %Z')"
+fi
 
 if [ -n "$TAG_NAME" -a "$GIT_HASH" != "$TAG_HASH" ]; then
 echo
 echo "TagTrace    $TAG_NUMBER.$(echo $TAG_HASH | cut -c1-7)"
 echo "TagName     $TAG_NAME"
 echo "TagDiff     $TAG_DIFF"
+if $DARWIN; then
+echo "TagHash     $TAG_HASH @ $(date -r $TAG_TIME '+%Y-%m-%d %H:%M:%S %Z')"
+else
 echo "TagHash     $TAG_HASH @ $(date --date=@$TAG_TIME '+%Y-%m-%d %H:%M:%S %Z')"
+fi
 fi
 
 if [ -n "$TAG_NAME" ]; then

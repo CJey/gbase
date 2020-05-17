@@ -4,6 +4,7 @@
 # ROOT: 总是正确指向build脚本所在目录
 _ROOT="$(pwd)" && cd "$(dirname "$0")" && ROOT="$(pwd)"
 PJROOT="$ROOT"
+DARWIN="$([ "$(uname -s)" = "Darwin" ] && echo true || echo false)"
 
 __tag_message() {
     cd "$PJROOT"
